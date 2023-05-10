@@ -1,2 +1,4 @@
 # szpTest
 这是一个新手学习Android的各种项目仓库
+PhoneSocketTest CarSocketTest 是用于学习Socket传输协议的项目，分为手机和车机两个客户端
+Mp3ReadTest 是用于学习 如何解析MP3文件的 ID3 标签信息的项目
