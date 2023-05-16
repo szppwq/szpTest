@@ -22,10 +22,11 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.WindowManager;
 
-import com.example.carsockettest.AppPhoneApplication;
-import com.example.carsockettest.bean.CallLogBean;
-import com.example.carsockettest.bean.ContactBean;
-import com.example.carsockettest.bean.LocalMusicBean;
+
+import com.example.phonesockettest.AppPhoneApplication;
+import com.example.phonesockettest.bean.CallLogBean;
+import com.example.phonesockettest.bean.ContactBean;
+import com.example.phonesockettest.bean.LocalMusicBean;
 
 import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
