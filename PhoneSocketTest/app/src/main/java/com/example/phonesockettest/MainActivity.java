@@ -96,10 +96,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 //                if (netI.getDisplayName().equals("wlan0") || netI.getDisplayName().equals("eth0")){}
-                Log.i("szp","开始获取当前设备的ip: "+getIpAddressString());
+//                Log.i("szp","开始获取当前设备的ip: "+getIpAddressString());
                 Log.i("szp","获取当前连接的WiFi的IP："+getWifiIp());
-                getWifiApState();
-                printHotIp();
+//                getWifiApState();
+//                printHotIp();
             }
         });
         tvSendMessage.setOnClickListener(new View.OnClickListener() {
@@ -112,72 +112,75 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    public int getWifiApState() {
-        try {
-            Method method = wifiManager.getClass().getMethod("getWifiApState");
-            WifiInfo info = wifiManager.getConnectionInfo();
-            int i = (Integer) method.invoke(wifiManager);
-            Log.i("szp","wifi state: " + i+"wifiIP: "+getCorrectIPAddress(info.getIpAddress()));
-            return i;
-        } catch (Exception e) {
-            Log.e("szp","Cannot get WiFi AP state" + e);
-            return WIFI_AP_STATE_FAILED;
-        }
-    }
+//    public int getWifiApState() {
+//        try {
+//            Method method = wifiManager.getClass().getMethod("getWifiApState");
+//            WifiInfo info = wifiManager.getConnectionInfo();
+//            int i = (Integer) method.invoke(wifiManager);
+//            Log.i("szp","wifi state: " + i+"wifiIP: "+getCorrectIPAddress(info.getIpAddress()));
+//            return i;
+//        } catch (Exception e) {
+//            Log.e("szp","Cannot get WiFi AP state" + e);
+//            return WIFI_AP_STATE_FAILED;
+//        }
+//    }
 
-    private ArrayList<String> getConnectedHotIP() {
-        ArrayList<String> connectedIP = new ArrayList<String>();
-        try {
-            BufferedReader br = new BufferedReader(new FileReader(
-                    "/proc/net/arp"));
-            Log.i("szp","try: ");
-            String line;
-            while ((line = br.readLine()) != null) {
-                Log.i("szp","ip1: "+line);
-                String[] splitted = line.split(" +");
-                if (splitted != null && splitted.length == 4) {
-                    String ip = splitted[0];
-                    Log.i("szp","i2p: "+ip);
-                    connectedIP.add(ip);
-                }
-            }
-        } catch (Exception e) {
-            Log.i("szp","Exception: "+e);
-            e.printStackTrace();
-        }
-        return connectedIP;
-    }
+    //不知Android12 以上的版本 获取不到
+//    private ArrayList<String> getConnectedHotIP() {
+//        ArrayList<String> connectedIP = new ArrayList<String>();
+//        try {
+//            BufferedReader br = new BufferedReader(new FileReader(
+//                    "/proc/net/arp"));
+//            Log.i("szp","try: ");
+//            String line;
+//            while ((line = br.readLine()) != null) {
+//                Log.i("szp","ip1: "+line);
+//                String[] splitted = line.split(" +");
+//                if (splitted != null && splitted.length == 4) {
+//                    String ip = splitted[0];
+//                    Log.i("szp","i2p: "+ip);
+//                    connectedIP.add(ip);
+//                }
+//            }
+//        } catch (Exception e) {
+//            Log.i("szp","Exception: "+e);
+//            e.printStackTrace();
+//        }
+//        return connectedIP;
+//    }
     //输出连接到当前设备的IP地址
-    public void printHotIp() {
+//    public void printHotIp() {
+//
+//        ArrayList<String> connectedIP = getConnectedHotIP();
+//        StringBuilder resultList = new StringBuilder();
+//        for (String ip : connectedIP) {
+//            resultList.append(ip);
+//            resultList.append("\n");
+//        }
+//        tvIp.setText(resultList);
+//        Log.d("szp","resultList="+resultList);
+//    }
 
-        ArrayList<String> connectedIP = getConnectedHotIP();
-        StringBuilder resultList = new StringBuilder();
-        for (String ip : connectedIP) {
-            resultList.append(ip);
-            resultList.append("\n");
-        }
-        tvIp.setText(resultList);
-        Log.d("szp","resultList="+resultList);
-    }
 
-    public static String getIpAddressString() {
-        try {
-            for (Enumeration<NetworkInterface> enNetI = NetworkInterface
-                    .getNetworkInterfaces(); enNetI.hasMoreElements(); ) {
-                NetworkInterface netI = enNetI.nextElement();
-                for (Enumeration<InetAddress> enumIpAddr = netI
-                        .getInetAddresses(); enumIpAddr.hasMoreElements(); ) {
-                    InetAddress inetAddress = enumIpAddr.nextElement();
-                    if (inetAddress instanceof Inet4Address && !inetAddress.isLoopbackAddress()) {
-                        return inetAddress.getHostAddress();
-                    }
-                }
-            }
-        } catch (SocketException e) {
-            e.printStackTrace();
-        }
-        return "";
-    }
+    //只能获取本机的 ip
+//    public static String getIpAddressString() {
+//        try {
+//            for (Enumeration<NetworkInterface> enNetI = NetworkInterface
+//                    .getNetworkInterfaces(); enNetI.hasMoreElements(); ) {
+//                NetworkInterface netI = enNetI.nextElement();
+//                for (Enumeration<InetAddress> enumIpAddr = netI
+//                        .getInetAddresses(); enumIpAddr.hasMoreElements(); ) {
+//                    InetAddress inetAddress = enumIpAddr.nextElement();
+//                    if (inetAddress instanceof Inet4Address && !inetAddress.isLoopbackAddress()) {
+//                        return inetAddress.getHostAddress();
+//                    }
+//                }
+//            }
+//        } catch (SocketException e) {
+//            e.printStackTrace();
+//        }
+//        return "";
+//    }
 
     public String getWifiIp() {
         if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.M) {
