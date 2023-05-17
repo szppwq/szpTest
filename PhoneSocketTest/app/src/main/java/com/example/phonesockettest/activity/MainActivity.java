@@ -38,7 +38,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
 
     private TextView tvBeginConnect, tvGetIp, tvSendMessage, tvBeginScreen;
     private TextView tvIp, tvMessage, tvMessageResult, tvConnectResult;
