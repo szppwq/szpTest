@@ -22,13 +22,33 @@ android {
         }
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
-
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+//配置自动打包时 使用配置app签名
+    signingConfigs {
+        config {
+            keyAlias 'SocketTestKey'
+            keyPassword '123456'
+            storeFile file('../SocketTestKey.jks')
+            storePassword '123456'
+            v2SigningEnabled true
         }
     }
+    buildTypes {
+        release {
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.config
+            minifyEnabled false
+            shrinkResources false
+            zipAlignEnabled false
+        }
+        debug {
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.config
+            minifyEnabled false
+            shrinkResources false
+            zipAlignEnabled false
+        }
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -38,7 +58,11 @@ android {
         main {
             jniLibs.srcDirs = ['libs']
         }
-}
+        debug.setRoot('build-types/debug')
+        release.setRoot('build-types/release')
+    }
+
+
 }
 
 dependencies {
