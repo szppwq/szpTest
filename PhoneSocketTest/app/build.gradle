@@ -30,7 +30,7 @@ android {
         config {
             keyAlias 'SocketTestKey'
             keyPassword '123456'
-            storeFile file('C:\\Users\\CYM_S\\AndroidStudioProjects\\SocketTestKey.jks')
+            storeFile file('../SocketTestKey.jks')
             storePassword '123456'
             v2SigningEnabled true
         }
