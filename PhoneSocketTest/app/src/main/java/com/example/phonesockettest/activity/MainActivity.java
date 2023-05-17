@@ -15,6 +15,7 @@ import android.net.DhcpInfo;
 import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.text.Spannable;
@@ -26,6 +27,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.phonesockettest.R;
+import com.example.phonesockettest.service.PhoneSocketService;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -66,33 +68,40 @@ public class MainActivity extends BaseActivity {
         tvConnectResult = findViewById(R.id.connect_result);
 
 
-
     }
 
-    public void initListener(){
+    public void initListener() {
         tvBeginConnect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Log.i("szp","开始连接另一个设备");
+                Log.i("szp", "开始连接另一个设备");
             }
         });
         tvBeginScreen.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Log.i("szp","开始投屏");
+                Log.i("szp", "开始投屏");
             }
         });
         tvGetIp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Log.i("szp","获取当前连接的WiFi的IP：");
-
+                Log.i("szp", "获取当前连接的WiFi的IP：");
+                Intent intent = new Intent(MainActivity.this, PhoneSocketService.class);
+                //启动服务还需要在清单文件中配置
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    Log.i("szp", "startForegroundService：");
+                    startForegroundService(intent);
+                } else {
+                    Log.i("szp", "startService：");
+                    startService(intent);
+                }
             }
         });
         tvSendMessage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Log.i("szp","开始发送信息给另一个设备");
+                Log.i("szp", "开始发送信息给另一个设备");
             }
         });
     }
@@ -211,17 +220,17 @@ public class MainActivity extends BaseActivity {
 
         // 拒绝, 退出应用
         builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        finish();
-                    }
-                });
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                finish();
+            }
+        });
         builder.setPositiveButton("设置", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        startAppSettings();
-                    }
-                });
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                startAppSettings();
+            }
+        });
         builder.setCancelable(false);
 
         builder.show();

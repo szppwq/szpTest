@@ -66,7 +66,7 @@ public class PhoneSocketService extends Service {
         public void onClientConnected(IClient client, int serverPort, IClientPool clientPool) {
 
             Log.d(TAG, client.getUniqueTag() + " 客户端已连接");
-
+            mClient = client;
             client.addIOCallback(new IClientIOCallback() {
                 @Override
                 public void onClientRead(OriginalData originalData, IClient client, IClientPool<IClient, String> clientPool) {
