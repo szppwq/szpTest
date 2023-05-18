@@ -78,5 +78,8 @@ dependencies {
     //如果您需要使用 OkSocketServer 功能在客户端或者Java程序,您还需要依赖下面的Server插件包和上面的一起依赖.
     api 'com.tonystark.android:socket-server:4.1.0'
 
+    //EventBus 依赖
+    implementation 'org.greenrobot:eventbus:3.1.1'
+
 
 }

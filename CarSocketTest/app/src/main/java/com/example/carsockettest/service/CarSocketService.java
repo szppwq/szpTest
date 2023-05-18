@@ -1,12 +1,18 @@
 package com.example.carsockettest.service;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
+import android.graphics.BitmapFactory;
+import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
 
+import com.example.carsockettest.R;
 import com.example.carsockettest.util.Util;
 import com.xuhao.didi.core.iocore.interfaces.IPulseSendable;
 import com.xuhao.didi.core.iocore.interfaces.ISendable;
@@ -34,6 +40,7 @@ public class CarSocketService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        createNotificationChannel();
         ConnectionInfo info = new ConnectionInfo(Util.getWifiIp(this), 21798);//连接参数设置(IP,端口号)
         mManager = OkSocket.open(info);//调用OkSocket,开启这次连接的通道,拿到通道Manager
         mManager.registerReceiver(socketActionAdapter);//注册Socket行为监听器
@@ -45,6 +52,33 @@ public class CarSocketService extends Service {
         return super.onStartCommand(intent, flags, startId);
     }
 
+    //服务保活  ，通过状态栏通知 提升进程优先级 尽量保证服务不会被杀掉
+    private void createNotificationChannel() {
+        Notification.Builder builder = new Notification.Builder(this.getApplicationContext());
+//        Intent nfIntent = new Intent(this, MainActivity.class);
+
+        builder
+//                .setContentIntent(PendingIntent.getActivity(this, 0, nfIntent, 0))
+                .setLargeIcon(BitmapFactory.decodeResource(this.getResources(), R.mipmap.ic_launcher)) // 设置下拉列表中的图标(大图标)
+                .setSmallIcon(R.drawable.ic_launcher_foreground) // 设置状态栏内的小图标
+                .setContentText("AppCar") // 设置上下文内容
+                .setWhen(System.currentTimeMillis()); // 设置该通知发生的时间
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            builder.setChannelId("notification_id");
+            // 前台服务notification适配
+            NotificationManager notificationManager =
+                    (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            NotificationChannel channel =
+                    new NotificationChannel(
+                            "notification_id", "notification_name", NotificationManager.IMPORTANCE_LOW);
+            notificationManager.createNotificationChannel(channel);
+        }
+
+        Notification notification = builder.build();
+        notification.defaults = Notification.DEFAULT_SOUND; // 设置为默认通知音
+        startForeground(110, notification);
+    }
     SocketActionAdapter socketActionAdapter = new SocketActionAdapter() {
         @Override
         public void onSocketIOThreadStart(String action) {

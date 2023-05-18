@@ -1,13 +1,19 @@
 package com.example.phonesockettest.service;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
+import android.graphics.BitmapFactory;
+import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 
 
 import androidx.annotation.Nullable;
 
+import com.example.phonesockettest.R;
 import com.xuhao.didi.core.iocore.interfaces.ISendable;
 import com.xuhao.didi.core.pojo.OriginalData;
 import com.xuhao.didi.socket.client.sdk.OkSocket;
@@ -44,6 +50,7 @@ public class PhoneSocketService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        createNotificationChannel();
         server = OkSocket.server(SOCKET_PORT);//创建服务
         serverManager = server.registerReceiver(iServerActionListener);//注册回调
         serverManager.listen();//开启监听
@@ -55,8 +62,29 @@ public class PhoneSocketService extends Service {
         return super.onStartCommand(intent, flags, startId);
     }
 
+    //服务保活  ，通过状态栏通知 提升进程优先级 尽量保证服务不会被杀掉
+    private void createNotificationChannel() {
+        Notification.Builder builder = new Notification.Builder(this.getApplicationContext());
+        builder.setLargeIcon(BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_launcher_background)) // 设置下拉列表中的图标(大图标)
+                .setSmallIcon(R.drawable.ic_launcher_background) // 设置状态栏内的小图标
+                .setContentText("SocketTest") // 设置上下文内容
+                .setWhen(System.currentTimeMillis()); // 设置该通知发生的时间
 
-    //
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            builder.setChannelId("notification_id");
+            // 前台服务notification适配
+            NotificationManager notificationManager =
+                    (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            NotificationChannel channel = new NotificationChannel(
+                            "notification_id", "notification_name", NotificationManager.IMPORTANCE_LOW);
+            notificationManager.createNotificationChannel(channel);
+        }
+
+        Notification notification = builder.build();
+        notification.defaults = Notification.DEFAULT_SOUND; // 设置为默认通知音
+        startForeground(110, notification);
+    }
+
     IServerActionListener iServerActionListener = new IServerActionListener() {
         @Override
         public void onServerListening(int serverPort) {
@@ -112,14 +140,6 @@ public class PhoneSocketService extends Service {
         }
 
     };
-
-
-
-
-
-
-
-
 
 
 

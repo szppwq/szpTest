@@ -11,29 +11,106 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.text.Editable;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
+import android.text.TextWatcher;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
+import android.view.View;
 import android.view.Window;
+import android.widget.EditText;
+import android.widget.TextView;
 
 import com.example.carsockettest.R;
+import com.example.carsockettest.service.CarSocketService;
+import com.example.carsockettest.util.Util;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+
+    private TextView tvConnect, tvPhoneIp, tvSendInfo, tvGetPhone;
+    private EditText edSendInfo;
+    protected String[] needPermissions = {
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.READ_PHONE_STATE
+    };
+
+    private static final int PERMISSON_REQUESTCODE = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_main);
+        init();
         privacyCompliance();
+    }
 
+    public void init() {
+        EventBus.getDefault().register(this);
+        tvConnect = (TextView) findViewById(R.id.connect_phone);
+        tvPhoneIp = (TextView) findViewById(R.id.phone_ip);
+        tvSendInfo = (TextView) findViewById(R.id.send_info);
+        tvGetPhone = (TextView) findViewById(R.id.phone_info);
+        edSendInfo = (EditText) findViewById(R.id.car_info);
+
+        tvGetPhone.setOnClickListener(this);
+        tvPhoneIp.setOnClickListener(this);
+        tvSendInfo.setOnClickListener(this);
+        tvConnect.setOnClickListener(this);
+        edSendInfo.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
+    }
+
+    @Override
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.connect_phone:
+                Intent intent = new Intent(MainActivity.this, CarSocketService.class);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    Log.i("szp", "startForegroundService：");
+                    startForegroundService(intent);
+                } else {
+                    Log.i("szp", "startService：");
+                    startService(intent);
+                }
+                break;
+            case R.id.phone_ip:
+                tvPhoneIp.setText(Util.getWifiIp(this));
+                break;
+            case R.id.send_info:
+
+                break;
+            case R.id.phone_info:
+                break;
         }
+    }
+
 
     private void privacyCompliance() {
 //        MapsInitializer.updatePrivacyShow(MainActivity.this, true, true);
@@ -57,22 +134,10 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
-
-    protected String[] needPermissions = {
-            Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.READ_PHONE_STATE
-    };
-
-    private static final int PERMISSON_REQUESTCODE = 0;
-
     /**
      * 判断是否需要检测，防止不停的弹框
      */
     private boolean isNeedCheck = true;
-
 
     /**
      * @since 2.5.0

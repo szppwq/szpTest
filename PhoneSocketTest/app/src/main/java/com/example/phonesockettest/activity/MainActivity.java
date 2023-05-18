@@ -29,6 +29,8 @@ import android.widget.Toast;
 import com.example.phonesockettest.R;
 import com.example.phonesockettest.service.PhoneSocketService;
 
+import org.greenrobot.eventbus.EventBus;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.lang.reflect.Method;
@@ -57,6 +59,7 @@ public class MainActivity extends BaseActivity {
     }
 
     public void init() {
+        EventBus.getDefault().register(this);
         tvBeginConnect = findViewById(R.id.begin_connect);
         tvGetIp = findViewById(R.id.tv_get_ip);
         tvSendMessage = findViewById(R.id.send_message);
