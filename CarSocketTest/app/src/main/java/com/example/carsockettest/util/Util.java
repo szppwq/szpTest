@@ -5,6 +5,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Point;
 import android.net.ConnectivityManager;
 import android.net.DhcpInfo;
 import android.net.NetworkInfo;
@@ -13,9 +14,11 @@ import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.util.Base64;
 import android.util.DisplayMetrics;
+import android.view.Display;
 import android.view.WindowManager;
 
 import com.example.carsockettest.AppCarApplication;
+import com.example.carsockettest.bean.WindowsDisplayBean;
 
 import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
@@ -364,4 +367,29 @@ public class Util {
         return body;
     }
 
+    public WindowsDisplayBean getWindowsDisplay(Context context){
+        WindowsDisplayBean windowsDisplayBean = new WindowsDisplayBean();
+        WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        //可用分辨率
+        Display display = windowManager.getDefaultDisplay();
+//        Point point = new Point();
+//        display.getSize(point);
+//屏幕可用宽度(像素个数)
+//        int width = point.x;
+//屏幕可用高度(像素个数)
+//        int height = point.y;
+
+        //实际分辨率 受顶部或底部的虚拟导航栏占用产生的应用实际可用分辨率（相比实际分辨率减小了占用部分)
+//        DisplayMetrics metrics = new DisplayMetrics();
+//        windowManager.getDefaultDisplay().getRealMetrics(metrics);
+////屏幕实际宽度（像素个数）
+//        int width = metrics.widthPixels;
+////屏幕实际高度（像素个数）
+//        int height = metrics.heightPixels;
+
+        windowsDisplayBean.windowsWidth = display.getWidth();
+        windowsDisplayBean.windowsHeight = display.getHeight();
+        return windowsDisplayBean;
+
+    }
 }

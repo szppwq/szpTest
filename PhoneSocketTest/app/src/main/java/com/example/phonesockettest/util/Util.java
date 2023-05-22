@@ -7,6 +7,9 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Point;
+import android.media.MediaExtractor;
+import android.media.MediaFormat;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -20,6 +23,7 @@ import android.text.TextUtils;
 import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Display;
 import android.view.WindowManager;
 
 
@@ -27,8 +31,10 @@ import com.example.phonesockettest.AppPhoneApplication;
 import com.example.phonesockettest.bean.CallLogBean;
 import com.example.phonesockettest.bean.ContactBean;
 import com.example.phonesockettest.bean.LocalMusicBean;
+import com.example.phonesockettest.bean.WindowsDisplayBean;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.Inet4Address;
@@ -284,8 +290,6 @@ public class Util {
     }
 
 
-
-
     /***
      * 获取手机通话记录
      * num:要读取的通话记录数量
@@ -408,8 +412,6 @@ public class Util {
     }
 
 
-
-
     /**
      * 获取本地的音乐信息
      */
@@ -423,7 +425,7 @@ public class Util {
                 while (cursor.moveToNext()) {
                     int duration = cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION));
                     long size = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.SIZE));
-                    if(duration > 0 && size >10){  //时间、大小
+                    if (duration > 0 && size > 10) {  //时间、大小
                         String name = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME));
                         long id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID));
                         String singer = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST));
@@ -454,9 +456,7 @@ public class Util {
     }
 
 
-
-
-    public static void callPhone(Context context, String phoneNum){
+    public static void callPhone(Context context, String phoneNum) {
         Intent intent = new Intent(Intent.ACTION_CALL);
         Uri data = Uri.parse("tel:" + phoneNum);
         intent.setData(data);
@@ -479,7 +479,7 @@ public class Util {
      */
     public static String trimEnd(String str, String suffix) {
         if (str.endsWith(suffix)) {
-            return (str.substring(0,str.length()-suffix.length()));
+            return (str.substring(0, str.length() - suffix.length()));
         }
         return str;
     }
@@ -512,14 +512,14 @@ public class Util {
      * 数据内容:实际的类容转化为byte
      * 例：6BEE8CA0AAAAAAAABBBBBBBBCCCCCCCCCCCCCCCCCCCCCCC8D04A8B2
      */
-    public static byte[] buildSocketBody(int type, String str){
+    public static byte[] buildSocketBody(int type, String str) {
         byte[] h = ByteBuffer.allocate(4).putInt(SocketConstants.frameHeader).array();   //帧头
         byte[] t = ByteBuffer.allocate(4).putInt(type).array();  //数据类型
         byte[] d = str.getBytes(Charset.defaultCharset());  //数据内容
         byte[] l = ByteBuffer.allocate(4).putInt(d.length).array();  //数据长度
         byte[] e = ByteBuffer.allocate(4).putInt(SocketConstants.frameEnd).array();   //帧尾
 
-        byte[] body = Util.concatAll(h,t,l,d,e);
+        byte[] body = Util.concatAll(h, t, l, d, e);
 
         return body;
     }
@@ -527,13 +527,13 @@ public class Util {
     /**
      * 用于处理投屏时视频帧的传输
      */
-    public static byte[] buildSocketBody(int type, byte[] data){
+    public static byte[] buildSocketBody(int type, byte[] data) {
         byte[] h = ByteBuffer.allocate(4).putInt(SocketConstants.frameHeader).array();   //帧头
         byte[] t = ByteBuffer.allocate(4).putInt(type).array();  //数据类型
         byte[] d = data;  //视频帧数据内容
         byte[] l = ByteBuffer.allocate(4).putInt(d.length).array();  //数据长度
         byte[] e = ByteBuffer.allocate(4).putInt(SocketConstants.frameEnd).array();   //帧尾
-        byte[] body = Util.concatAll(h,t,l,d,e);
+        byte[] body = Util.concatAll(h, t, l, d, e);
         return body;
     }
 
@@ -546,5 +546,31 @@ public class Util {
         bb.order(ByteOrder.BIG_ENDIAN);  //大小端
         return bb.getInt();
     }
+
+    public static WindowsDisplayBean getWindowsDisplay(Context context) {
+        WindowsDisplayBean windowsDisplayBean = new WindowsDisplayBean();
+        WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        //可用分辨率
+        Display display = windowManager.getDefaultDisplay();
+//        Point point = new Point();
+//        display.getSize(point);
+//屏幕可用宽度(像素个数)
+//        int width = point.x;
+//屏幕可用高度(像素个数)
+//        int height = point.y;
+
+        //实际分辨率 受顶部或底部的虚拟导航栏占用产生的应用实际可用分辨率（相比实际分辨率减小了占用部分)
+//        DisplayMetrics metrics = new DisplayMetrics();
+//        windowManager.getDefaultDisplay().getRealMetrics(metrics);
+////屏幕实际宽度（像素个数）
+//        int width = metrics.widthPixels;
+////屏幕实际高度（像素个数）
+//        int height = metrics.heightPixels;
+
+        windowsDisplayBean.windowsWidth = display.getWidth();
+        windowsDisplayBean.windowsHeight = display.getHeight();
+        return windowsDisplayBean;
+    }
+
 
 }

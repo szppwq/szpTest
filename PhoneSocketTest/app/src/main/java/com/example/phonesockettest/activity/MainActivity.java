@@ -1,5 +1,6 @@
 package com.example.phonesockettest.activity;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -11,6 +12,11 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.media.MediaCodecInfo;
+import android.media.MediaCodecList;
+import android.media.MediaExtractor;
+import android.media.MediaFormat;
+import android.media.projection.MediaProjectionManager;
 import android.net.DhcpInfo;
 import android.net.Uri;
 import android.net.wifi.WifiInfo;
@@ -28,11 +34,13 @@ import android.widget.Toast;
 
 import com.example.phonesockettest.R;
 import com.example.phonesockettest.service.PhoneSocketService;
+import com.example.phonesockettest.util.Util;
 
 import org.greenrobot.eventbus.EventBus;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.Inet4Address;
 import java.net.InetAddress;
@@ -48,6 +56,21 @@ public class MainActivity extends BaseActivity {
     private TextView tvIp, tvMessage, tvMessageResult, tvConnectResult;
 
     private WifiManager wifiManager;
+    private static final int PROJECTION_REQUEST_CODE = 1;
+
+    private MediaProjectionManager mediaProjectionManager;
+
+    //需要申请的权限
+    protected String[] needPermissions = {
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.READ_PHONE_STATE
+    };
+
+    private static final int PERMISSON_REQUESTCODE = 0;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,7 +82,7 @@ public class MainActivity extends BaseActivity {
     }
 
     public void init() {
-        EventBus.getDefault().register(this);
+//        EventBus.getDefault().register(this);
         tvBeginConnect = findViewById(R.id.begin_connect);
         tvGetIp = findViewById(R.id.tv_get_ip);
         tvSendMessage = findViewById(R.id.send_message);
@@ -77,13 +100,20 @@ public class MainActivity extends BaseActivity {
         tvBeginConnect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Log.i("szp", "开始连接另一个设备");
+//                Log.i("szp", "获取当前手机分辨率："+ Util.getWindowsDisplay(MainActivity.this).windowsWidth+" "+Util.getWindowsDisplay(MainActivity.this).windowsHeight);
+//            tvConnectResult.setText("高："+Util.getWindowsDisplay(MainActivity.this).windowsHeight+"宽："+Util.getWindowsDisplay(MainActivity.this).windowsWidth);
+//                tvConnectResult.setText("height: "+Util.getFormat(true).getInteger(MediaFormat.KEY_HEIGHT)
+//                        +"宽："+Util.getFormat(true).getInteger(MediaFormat.KEY_WIDTH));
+                MediaCodecInfo.CodecCapabilities codecCapabilities = new MediaCodecInfo.CodecCapabilities();
+                codecCapabilities.getMaxSupportedInstances();
+                Log.e("szp","getMaxSupportedInstances: "+codecCapabilities.getMaxSupportedInstances());
             }
         });
         tvBeginScreen.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Log.i("szp", "开始投屏");
+                startProjection();
             }
         });
         tvGetIp.setOnClickListener(new View.OnClickListener() {
@@ -109,6 +139,32 @@ public class MainActivity extends BaseActivity {
         });
     }
 
+    // 请求开始录屏
+    private void startProjection() {
+        Intent intent = mediaProjectionManager.createScreenCaptureIntent();
+        startActivityForResult(intent, PROJECTION_REQUEST_CODE);
+    }
+
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode != RESULT_OK) {
+            return;
+        }
+        if (requestCode == PROJECTION_REQUEST_CODE) {
+            Intent service = new Intent(this, PhoneSocketService.class);
+            service.putExtra("code", resultCode);
+            service.putExtra("data", data);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(service);
+            } else {
+                startService(service);
+            }
+        }
+    }
+
     //动态申请权限，并声明高德地图的隐私合规检查，否则后续拿不到AMap  getMap会为空
     private void privacyCompliance() {
 //        MapsInitializer.updatePrivacyShow(MainActivity.this, true, true);
@@ -131,18 +187,6 @@ public class MainActivity extends BaseActivity {
                 })
                 .show();
     }
-
-
-    //需要申请的权限
-    protected String[] needPermissions = {
-            Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.READ_PHONE_STATE
-    };
-
-    private static final int PERMISSON_REQUESTCODE = 0;
 
     /**
      * 判断是否需要检测，防止不停的弹框
@@ -268,6 +312,7 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+//        EventBus.getDefault().unregister(this);
     }
 
 

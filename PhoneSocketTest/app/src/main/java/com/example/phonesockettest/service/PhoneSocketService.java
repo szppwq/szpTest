@@ -6,9 +6,16 @@ import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
+import android.hardware.display.DisplayManager;
+import android.media.MediaCodec;
+import android.media.MediaCodecInfo;
+import android.media.MediaFormat;
+import android.media.projection.MediaProjection;
+import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
+import android.view.Surface;
 
 
 import androidx.annotation.Nullable;
@@ -25,6 +32,7 @@ import com.xuhao.didi.socket.common.interfaces.common_interfacies.server.IServer
 import com.xuhao.didi.socket.common.interfaces.common_interfacies.server.IServerManager;
 import com.xuhao.didi.socket.common.interfaces.common_interfacies.server.IServerShutdown;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
@@ -38,7 +46,7 @@ public class PhoneSocketService extends Service {
     private IClient mClient;  //通过这个由服务器往客户端发送数据
     /**端口号，需要Phone端与Car端一致*/
     public static final int SOCKET_PORT = 21798;
-
+    private MediaProjectionManager mMediaProjectionManager;
 
 
     @Nullable
@@ -51,6 +59,7 @@ public class PhoneSocketService extends Service {
     public void onCreate() {
         super.onCreate();
         createNotificationChannel();
+        mMediaProjectionManager = (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);
         server = OkSocket.server(SOCKET_PORT);//创建服务
         serverManager = server.registerReceiver(iServerActionListener);//注册回调
         serverManager.listen();//开启监听
@@ -59,8 +68,20 @@ public class PhoneSocketService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        int resultCode = intent.getIntExtra("code", -1);
+        Intent resultData = intent.getParcelableExtra("data");
+        startProject(resultCode, resultData);
         return super.onStartCommand(intent, flags, startId);
+
     }
+    // 录屏开始后进行编码推流
+    private void startProject(int resultCode, Intent data) {
+        MediaProjection mediaProjection = mMediaProjectionManager.getMediaProjection(resultCode, data);
+        if (mediaProjection == null) {
+            return;
+        }
+    }
+
 
     //服务保活  ，通过状态栏通知 提升进程优先级 尽量保证服务不会被杀掉
     private void createNotificationChannel() {
@@ -141,7 +162,93 @@ public class PhoneSocketService extends Service {
 
     };
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
 
 
+//    public void startEncode() {
+//        //声明MediaFormat，创建视频格式。
+//        MediaFormat mediaFormat = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_HEVC, width, height);
+//        //描述视频格式的内容的颜色格式
+//        mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
+//        //比特率（比特/秒）
+//        mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, width * height);
+//        //帧率
+//        mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, 20);
+//        //I帧的频率
+//        mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 1);
+//        try {
+//            //创建编码MediaCodec 类型是video/hevc
+//            mediaCodec = MediaCodec.createEncoderByType(enCodeType);
+//            //配置编码器
+//            mediaCodec.configure(mediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
+//            //创建一个目的surface来存放输入数据
+//            Surface surface = mediaCodec.createInputSurface();
+//            //获取屏幕流
+//            mediaProjection.createVirtualDisplay("screen", width, height, 1, DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC
+//                    , surface, null, null);
+//        } catch (IOException e) {
+//            Log.d(TAG,"initEncode IOException");
+//            e.printStackTrace();
+//        }
+//        //启动子线程
+//        this.start();
+//    }
+//
+//    @Override
+//    public void run() {
+//        //编解码器立即进入刷新子状态
+//        mediaCodec.start();
+//        //缓存区的元数据
+//        MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
+//        //子线程需要一直运行，进行编码推流，所以要一直循环
+//        while (play) {
+//            //查询编码输出
+//            int outPutBufferId = mediaCodec.dequeueOutputBuffer(bufferInfo, timeOut);
+//            if (outPutBufferId >= 0) {
+//                //获取编码之后的数据输出流队列
+//                ByteBuffer byteBuffer = mediaCodec.getOutputBuffer(outPutBufferId);
+//                //添加上vps,sps,pps
+//                reEncode(byteBuffer, bufferInfo);
+//                //处理完成，释放ByteBuffer数据
+//                mediaCodec.releaseOutputBuffer(outPutBufferId, false);
+//            }
+//        }
+//    }
+//
+//    private void reEncode(ByteBuffer byteBuffer, MediaCodec.BufferInfo bufferInfo) {
+//        //偏移4 00 00 00 01为分隔符需要跳过
+//        int offSet = 4;
+//        if (byteBuffer.get(2) == 0x01) {
+//            offSet = 3;
+//        }
+//        //计算出当前帧的类型
+//        int type = (byteBuffer.get(offSet) & 0x7E) >> 1;
+//        if (type == NAL_VPS) {
+//            //保存vps sps pps信息
+//            vps_pps_sps = new byte[bufferInfo.size];
+//            byteBuffer.get(vps_pps_sps);
+//        } else if (type == NAL_I) {
+//            //将保存的vps sps pps添加到I帧前
+//            final byte[] bytes = new byte[bufferInfo.size];
+//            byteBuffer.get(bytes);
+//            byte[] newBytes = new byte[vps_pps_sps.length + bytes.length];
+//            System.arraycopy(vps_pps_sps, 0, newBytes, 0, vps_pps_sps.length);
+//            System.arraycopy(bytes, 0, newBytes, vps_pps_sps.length, bytes.length);
+//            //将重新编码好的数据发送出去
+//            socketService.sendData(newBytes);
+//        } else {
+//            //B帧 P帧 直接发送
+//            byte[] bytes = new byte[bufferInfo.size];
+//            byteBuffer.get(bytes);
+//            socketService.sendData(bytes);
+//        }
+//    }
+//
+//    public void stopEncode() {
+//        play = false;
+//    }
 
 }

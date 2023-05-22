@@ -9,7 +9,7 @@ NaviSetting.updatePrivacyAgree(context, true);
 具体信息请参考：https://lbs.amap.com/api/android-navi-sdk/guide/create-project/configuration-considerations
 
 Socket 注意事项：
-1. 连接 ：
+1. 连接 ：心跳包（为了确认当前是否还处于连接状态） 和 喂狗操作
 
 有关于服务的注意事项：
 1.服务的启动：服务启动需要两个条件：1.清单文件注册，2.Intent 启动 根据Android版本不同，启动方式不同，需要判断

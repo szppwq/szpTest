@@ -29,13 +29,13 @@
             android:id="@+id/begin_connect"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="开始连接设备"
+            android:text="获取当前屏幕分辨率"
             android:layout_margin="15dp"/>
         <TextView
             android:id="@+id/connect_result"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="连接结果"
+            android:text="结果"
             android:layout_margin="15dp"/>
     </LinearLayout>
     <LinearLayout
